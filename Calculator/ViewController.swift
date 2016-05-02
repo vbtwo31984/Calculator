@@ -52,17 +52,17 @@ class ViewController: UIViewController {
         
         var description = brain.description
         if(brain.isPartialResult) {
-            description = description + "…"
+            description += " …"
         }
         else {
-            description = description + "="
+            description += " ="
         }
         historyDisplay.text = description
     }
     
     @IBAction private func clear() {
         display.text = "0"
-        historyDisplay.text = ""
+        historyDisplay.text = " "
         brain = CalculatorBrain()
     }
 }

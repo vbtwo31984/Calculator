@@ -24,11 +24,13 @@ class CalculatorBrain {
         "+": Operation.BinaryOperation({$0 + $1}),
         "−": Operation.BinaryOperation({$0 - $1}),
         "×": Operation.BinaryOperation({$0 * $1}),
-        "÷": Operation.BinaryOperation({$0 / $1})
+        "÷": Operation.BinaryOperation({$0 / $1}),
+        "Rand": Operation.NullaryOperation(drand48)
     ]
     
     private enum Operation {
         case Constant(Double)
+        case NullaryOperation(() -> Double)
         case UnaryOperation((Double) -> Double)
         case BinaryOperation((Double, Double) -> Double)
         case Equals
@@ -36,10 +38,10 @@ class CalculatorBrain {
     
     func setOperand(operand: Double) {
         accumulator = operand
-        description = description + String(operand) + " "
     }
     
     private var pending: PendingBinaryOperationInfo?
+    private var pendingConstant = false
     
     private struct PendingBinaryOperationInfo {
         var binaryFunction: (Double, Double) -> Double
@@ -51,22 +53,61 @@ class CalculatorBrain {
             switch operation {
             case .Constant(let value):
                 accumulator = value
+                if isPartialResult {
+                    description += " \(symbol)"
+                }
+                else {
+                    description = symbol
+                }
+                pendingConstant = true
             case .UnaryOperation(let function):
+                if symbol == "x²" {
+                    if isPartialResult {
+                        description += " \(accumulator)²"
+                    }
+                    else {
+                        description = "(\(description))²"
+                    }
+                }
+                else {
+                    if isPartialResult {
+                        description += " \(symbol)(\(accumulator))"
+                    }
+                    else {
+                        description = "\(symbol)(\(description))"
+                    }
+                }
+                pendingConstant = true
                 accumulator = function(accumulator)
             case .BinaryOperation(let function):
-                executePendingBinaryOperation()
+                if isPartialResult {
+                    executePendingBinaryOperation()
+                    description += " \(symbol)"
+                }
+                else {
+                    description = "\(accumulator) \(symbol)"
+                }
                 pending = PendingBinaryOperationInfo(binaryFunction: function, firstOperant: accumulator)
+            case .NullaryOperation(let function):
+                accumulator = function()
+                if isPartialResult {
+                    description += " \(accumulator)"
+                }
+                else {
+                    description = String(accumulator)
+                }
             case .Equals:
                 executePendingBinaryOperation()
-            }
-            if symbol != "=" {
-                description = description + symbol + " "
             }
         }
     }
     
     private func executePendingBinaryOperation() {
         if pending != nil {
+            if !pendingConstant {
+                description += " \(accumulator)"
+                pendingConstant = false
+            }
             accumulator = pending!.binaryFunction(pending!.firstOperant, accumulator)
             pending = nil
         }
