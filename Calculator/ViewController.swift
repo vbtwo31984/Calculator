@@ -9,17 +9,61 @@
 import UIKit
 
 class ViewController: UIViewController {
-
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        // Do any additional setup after loading the view, typically from a nib.
+    
+    @IBOutlet private weak var display: UILabel!
+    @IBOutlet private weak var historyDisplay: UILabel!
+    
+    private var userIsInTheMiddleOfTyping = false
+    private var brain = CalculatorBrain()
+    private var displayValue: Double {
+        get {
+            return Double(display.text!)!
+        }
+        set {
+            display.text = String(newValue)
+        }
     }
-
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
+    
+    @IBAction private func touchDigit(sender: UIButton) {
+        let digit = sender.currentTitle!
+        if userIsInTheMiddleOfTyping {
+            if digit == "." {
+                if display.text!.rangeOfString(".") != nil {
+                    return
+                }
+            }
+            display.text = display.text! + digit
+        }
+        else {
+            display.text = digit
+            userIsInTheMiddleOfTyping = true
+        }
     }
-
-
+    
+    @IBAction private func performOperation(sender: UIButton) {
+        if userIsInTheMiddleOfTyping {
+            brain.setOperand(displayValue)
+            userIsInTheMiddleOfTyping = false
+        }
+        if let mathematicalSymbol = sender.currentTitle {
+            brain.performOperation(mathematicalSymbol)
+            displayValue = brain.result
+        }
+        
+        var description = brain.description
+        if(brain.isPartialResult) {
+            description = description + "…"
+        }
+        else {
+            description = description + "="
+        }
+        historyDisplay.text = description
+    }
+    
+    @IBAction private func clear() {
+        display.text = "0"
+        historyDisplay.text = ""
+        brain = CalculatorBrain()
+    }
 }
 
