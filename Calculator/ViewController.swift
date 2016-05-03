@@ -65,5 +65,15 @@ class ViewController: UIViewController {
         historyDisplay.text = " "
         brain = CalculatorBrain()
     }
+    
+    @IBAction private func backspace() {
+        if userIsInTheMiddleOfTyping {
+            display.text!.removeAtIndex(display.text!.endIndex.predecessor());
+            if display.text! == "" {
+                display.text = "0"
+                userIsInTheMiddleOfTyping = false
+            }
+        }
+    }
 }
 
