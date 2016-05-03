@@ -42,6 +42,7 @@ class CalculatorBrain {
     
     private var pending: PendingBinaryOperationInfo?
     private var pendingConstant = false
+    private var lastOperation = "";
     
     private struct PendingBinaryOperationInfo {
         var binaryFunction: (Double, Double) -> Double
@@ -53,10 +54,10 @@ class CalculatorBrain {
             switch operation {
             case .Constant(let value):
                 accumulator = value
-                if isPartialResult {
+                if isPartialResult && lastOperation != symbol {
                     description += " \(symbol)"
                 }
-                else {
+                else if !isPartialResult {
                     description = symbol
                 }
                 pendingConstant = true
@@ -99,6 +100,7 @@ class CalculatorBrain {
             case .Equals:
                 executePendingBinaryOperation()
             }
+            lastOperation = symbol
         }
     }
     
