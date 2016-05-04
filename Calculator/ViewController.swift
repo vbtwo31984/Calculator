@@ -21,7 +21,9 @@ class ViewController: UIViewController {
         }
         set {
             if newValue != nil {
-                display.text = String(newValue)
+                let formatter = NSNumberFormatter()
+                formatter.maximumFractionDigits = 6
+                display.text = formatter.stringFromNumber(newValue!)
             }
             else {
                 display.text = ""

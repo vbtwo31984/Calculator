@@ -10,6 +10,13 @@ import Foundation
 
 class CalculatorBrain {
     private var accumulator = 0.0
+    private var accumulatorAsString: String {
+        get {
+            let formatter = NSNumberFormatter()
+            formatter.maximumFractionDigits = 6
+            return formatter.stringFromNumber(accumulator)!
+        }
+    }
     
     private var operations: Dictionary<String, Operation> = [
         "π": Operation.Constant(M_PI),
@@ -63,16 +70,16 @@ class CalculatorBrain {
                 pendingConstant = true
             case .UnaryOperation(let function):
                 if symbol == "x²" {
-                    if isPartialResult {
-                        description += " \(accumulator)²"
+                    if isPartialResult || description == "" {
+                        description += " \(accumulatorAsString)²"
                     }
                     else {
                         description = "(\(description))²"
                     }
                 }
                 else {
-                    if isPartialResult {
-                        description += " \(symbol)(\(accumulator))"
+                    if isPartialResult || description == "" {
+                        description += " \(symbol)(\(accumulatorAsString))"
                     }
                     else {
                         description = "\(symbol)(\(description))"
@@ -86,16 +93,16 @@ class CalculatorBrain {
                     description += " \(symbol)"
                 }
                 else {
-                    description = "\(accumulator) \(symbol)"
+                    description = "\(accumulatorAsString) \(symbol)"
                 }
                 pending = PendingBinaryOperationInfo(binaryFunction: function, firstOperant: accumulator)
             case .NullaryOperation(let function):
                 accumulator = function()
                 if isPartialResult {
-                    description += " \(accumulator)"
+                    description += " \(accumulatorAsString)"
                 }
                 else {
-                    description = String(accumulator)
+                    description = String(accumulatorAsString)
                 }
             case .Equals:
                 executePendingBinaryOperation()
@@ -107,7 +114,7 @@ class CalculatorBrain {
     private func executePendingBinaryOperation() {
         if pending != nil {
             if !pendingConstant {
-                description += " \(accumulator)"
+                description += " \(accumulatorAsString)"
                 pendingConstant = false
             }
             accumulator = pending!.binaryFunction(pending!.firstOperant, accumulator)
